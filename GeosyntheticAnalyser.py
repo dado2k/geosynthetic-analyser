@@ -247,9 +247,15 @@ class Secugrid(Geosynthetic):
         value=self.strength
         list=["30/30 Q6","40/40 Q6","60/60 Q6","80/80 Q6"]
         if self.name in list:
-            self.strain=6
+            if strain < 6:
+                value="Strain too low"
+            else:
+                self.strain=6
         else:
-            self.strain=6.5
+            if strain < 6.5:
+                value="Strain too low"
+            else:
+                self.strain=6.5
         return value
     def calc_RFcr(self, soilTemp, designLife):
         if soilTemp>20:
@@ -379,13 +385,13 @@ def main(): #Create list of geosynthetics to be analysed
     secugridQ.append(Secugrid("60/60 Q6",60))
     secugridQ.append(Secugrid("80/80 Q6",80))
     secugridR=[]
-    secugridR.append(Secugrid("40/20 R6",30))
-    secugridR.append(Secugrid("60/20 R6",40))
-    secugridR.append(Secugrid("80/20 R6",60))
-    secugridR.append(Secugrid("120/40 R6",80))
-    secugridR.append(Secugrid("150/40 R6",30))
-    secugridR.append(Secugrid("200/40 R6",40))
-    secugridR.append(Secugrid("400/40 R6",60))
+    secugridR.append(Secugrid("40/20 R6",40))
+    secugridR.append(Secugrid("60/20 R6",60))
+    secugridR.append(Secugrid("80/20 R6",80))
+    secugridR.append(Secugrid("120/40 R6",120))
+    secugridR.append(Secugrid("150/40 R6",150))
+    secugridR.append(Secugrid("200/40 R6",200))
+    secugridR.append(Secugrid("400/40 R6",400))
     
     
     writeExcel(stabilenkaMono,stabilenkaDual,secugridQ,secugridR)
