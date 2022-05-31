@@ -245,15 +245,16 @@ class Secugrid(Geosynthetic):
         self.Tdes=self.calc_Tdes()
     def calc_Tchar(self, strain):
         value=self.strength
+        self.strain=strain
         list=["30/30 Q6","40/40 Q6","60/60 Q6","80/80 Q6"]
         if self.name in list:
             if strain < 6:
-                value="Strain too low"
+                value="Strain too low (6% min)"
             else:
                 self.strain=6
         else:
             if strain < 6.5:
-                value="Strain too low"
+                value="Strain too low (6.5% min)"
             else:
                 self.strain=6.5
         return value
