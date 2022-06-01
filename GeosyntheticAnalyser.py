@@ -1,4 +1,4 @@
-
+##For Classes and Converting to Excel
 from cgitb import text
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -13,7 +13,7 @@ from tracemalloc import start
 from urllib.robotparser import RobotFileParser
 from xmlrpc.client import boolean
 import pylightxl as xl
-
+#For the user interface
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -42,18 +42,12 @@ class Geosynthetic(ABC):
     fs: float       #Factor of safety for extrapolation of data
     strain: int
 
-    printFlag: bool = TRUE
-
     def __str__(self):
         return f"{self.brand} {self.name}"
     def getStrength(self):
-        # if self.Tdes is float:
-        #     return self.Tdes
-        # else:
-        #     return 0
         try:
             return float(self.Tdes)
-        except ValueError:
+        except:
             return float('inf')
     @abstractmethod 
     def calc_Tchar(self):
@@ -93,6 +87,7 @@ class Stabilenka(Geosynthetic):
         self.fn=self.calc_fn(ui_structureCat)
         self.fs=self.calc_fs(ui_soilTemp,ui_designLife)
         self.Tdes=self.calc_Tdes()
+
     def calc_Tchar(self, strain):
         if strain in range(1,11):
             match strain:
@@ -229,7 +224,6 @@ class Stabilenka(Geosynthetic):
             value="Can't compute"
         return value
 
-
 class Secugrid(Geosynthetic):
     def __init__(self,name, maxstrength):
         self.brand="Secugrid"
@@ -351,17 +345,29 @@ def writeExcel(*lists):
     dataList=sorted(dataList,key=lambda x: x.getStrength())
     wb=xl.Database()
     wb.add_ws(ws="Geosynthethics")
+    match ui_soilType:
+        case 1: soilName="Sand"
+        case 2: soilName="Mixed (Sands and Gravels"
+        case 3: soilName="Coarse"
+    match ui_weathering:
+        case 1: weatheringName="Covered withing 2 weeks and protected from sunlight"
+        case 2: weatheringName="Covered within one day"
+    choiceTitles=["Strain (%):", "Design Life (years):","Soil Type:","Soil pH:","Structure Category (BS8006):","Weathering:"]
+    choiceData=[ui_strain,ui_designLife,soilName,ui_soilpH,ui_structureCat,weatheringName]
+    for sect1, u in enumerate(choiceTitles,start=1):
+        wb.ws(ws="Geosynthethics").update_index(row=1, col=sect1, val=u)
+    for sect2, w in enumerate(choiceData,start=1):
+        wb.ws(ws="Geosynthethics").update_index(row=2, col=sect2, val=w)
     titleData=["Brand:","Name:","Max Strength:","Strain:","Characteristic strength (Tchar):",
     "Long-term creep reduction factor (RFcr):","Installation damage reduction factor (RFid):","Weathering reduction factor (RFw):",
-    "Chemical & Enviromental reduction factor (RFch):","Ramification of failure safety factor (fn):",
+    "Chemical and Enviromental reduction factor (RFch):","Ramification of failure safety factor (fn):",
     "Data extrapolation safety factor (fs):","DESIGN STRENGTH:"]
-    for row_id, data in enumerate(titleData,start=1):
+    for row_id, data in enumerate(titleData,start=3):
         wb.ws(ws="Geosynthethics").update_index(row=row_id, col=1, val=data)
     for col_id, i in enumerate(dataList,start=2):
-        x=1
+        x=3
         for attName, attValue in vars(i).items():
             wb.ws(ws="Geosynthethics").update_index(row=x, col=col_id, val=attValue)
-            # wb.ws(ws="Geosynthethics").update_index(row=x, col=1, val=attName)
             x=x+1
     xl.writexl(db=wb,fn="geosynthethicOutputs.xlsx")
 
@@ -393,7 +399,6 @@ def main(): #Create list of geosynthetics to be analysed
     secugridR.append(Secugrid("150/40 R6",150))
     secugridR.append(Secugrid("200/40 R6",200))
     secugridR.append(Secugrid("400/40 R6",400))
-    
     
     writeExcel(stabilenkaMono,stabilenkaDual,secugridQ,secugridR)
 
